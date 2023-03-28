@@ -1,7 +1,7 @@
 import Product from './Product';
 import { useState, useEffect } from 'react'
-
-const url = "http://localhost:5000/api/v1/admin/products";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Home = () => {
 
@@ -10,6 +10,9 @@ const Home = () => {
     const [isError, setIsError] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [areProductsVisible, setAreProductsVisible] = useState(true);
+    const axiosPrivate = useAxiosPrivate();
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const removeProduct = (id) => {
         setProductList(productList => {
@@ -21,23 +24,36 @@ const Home = () => {
         setProductList([]);
     }
 
-    const fetchProducts = async () => {
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            setIsLoading(false);
-            setProductList(data.products);
-        } catch (error) {
-            setIsError(true);
-            setErrorMsg(error);
-        }
-    }
-
 
     useEffect(() => {
-        fetchProducts();
-    }, [])
+        let isMounted = true;
+        const controller = new AbortController();
 
+        const getProducts = async () => {
+            try {
+                const response = await axiosPrivate.get('/api/v1/products', {
+                    signal: controller.signal
+                });
+                console.log("got response");
+                isMounted && setProductList(response.data.products);
+                setIsLoading(false);
+            } catch (error) {
+                console.log(error);
+                setErrorMsg(error.response?.data?.msg);
+                setIsError(true);
+                navigate('/login', { state: { from: location }, replace: true });
+            }
+        }
+
+        getProducts();
+
+        return () => {
+            console.log("unmounting...");
+            isMounted = false;
+            controller.abort();
+        }
+
+    }, [location])
 
     if (isError) {
         return <h3>{errorMsg}</h3>

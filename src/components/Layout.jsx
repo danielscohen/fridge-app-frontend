@@ -1,10 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
+import Navbar from "./Navbar";
 
 const Layout = () => {
     return (
-        <main className="App">
-            <Outlet />
-        </main>
+        <div className="root-layout">
+            <Navbar />
+            <main>
+                <Outlet />
+            </main>
+        </div>
     )
 }
 

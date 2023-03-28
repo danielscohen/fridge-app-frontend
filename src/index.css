@@ -10,6 +10,11 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
+main {
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;

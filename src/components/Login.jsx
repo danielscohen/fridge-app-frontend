@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import useAuth from "../hooks/useAuth";
 import axios from "../api/axios";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, NavLink } from "react-router-dom";
 
 const LOGIN_URL = '/api/v1/auth/login';
 const HOME_URL = '/home';
 
 const Login = () => {
-    const { setAuth } = useAuth();
+    const { auth, setAuth } = useAuth();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -28,17 +28,27 @@ const Login = () => {
         setErrMsg("");
     }, [email, pwd])
 
+    useEffect(() => {
+        if (auth?.submitted) {
+            setAuth(prevSubmitted => ({ ...prevSubmitted, submitted: false }));
+            navigate(from, { replace: true });
+        }
+    }, [auth])
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.post(LOGIN_URL, JSON.stringify({ email, password: pwd }), {
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
             });
-            const accessToken = response?.data?.token;
-            setAuth({ user: email, pwd: password, accessToken });
+            const accessToken = response?.data?.accessToken;
+            console.log(`at: ${accessToken}`);
+            const roles = response?.data?.roles;
+            setAuth({ user: email, pwd: password, accessToken, roles, submitted: true });
             setEmail("");
             setPwd("");
-            navigate(from, { replace: true });
         } catch (error) {
             if (!error?.response) {
                 setErrMsg("No Server Response");
@@ -68,7 +78,7 @@ const Login = () => {
                 <p>
                     Don't have an account?<br />
                     <span className="line">
-                        <a href="#">Sign Up</a>
+                        <NavLink to='/register'>Sign Up</NavLink>
                     </span>
                 </p>
             </form>

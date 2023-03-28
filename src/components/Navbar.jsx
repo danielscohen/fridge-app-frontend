@@ -1,16 +1,30 @@
-import NavLinks from './NavLinks';
-import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import axios from "../api/axios";
 
 const Navbar = () => {
-    const [user, setUser] = useState({ name: 'something' })
-    const logout = () => {
-        setUser({ name: null });
+    const { auth, setAuth } = useAuth();
+    const navigate = useNavigate();
+    const logout = async () => {
+        const response = await axios.get('/api/v1/auth/logout',
+            {
+                withCredentials: true
+            });
+
+        setAuth({});
+        navigate('/home');
     }
 
     return (
-        <div>
-            <NavLinks logoutHandler={logout} user={user} />
-        </div>
+        <header className="App">
+            <nav>
+                <h1>Fridge App</h1>
+                <NavLink to="/home">Home</NavLink>
+                {auth?.user ?
+                    <button onClick={logout}>Logout</button> :
+                    <NavLink to="/login">Login</NavLink>}
+            </nav>
+        </header>
     )
 }
 
